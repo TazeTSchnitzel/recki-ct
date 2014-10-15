@@ -97,6 +97,13 @@ class Jit
     protected $phpcompiler;
 
     /**
+     * This compiler converts the intermediate into JavaScript instructions
+     *
+     * @var \ReckiCT\Compiler\JavaScript\Compiler The JavaScript compiler
+     */
+    protected $jscompiler;
+
+    /**
      * array[] An array of AST arrays keyed on filename (cache)
      */
     protected $parsedFiles = [];
@@ -153,6 +160,7 @@ class Jit
             $this->jitfucompiler = new Compiler\JitFu\Compiler($this);
         }
         $this->phpcompiler = new Compiler\PHP\Compiler;
+        $this->jscompiler = new Compiler\JavaScript\Compiler;
     }
 
     /**
@@ -255,6 +263,28 @@ class Jit
 
         return $name;
     }
+
+    /**
+     * Get a callable for a given function name. This will compile the function
+     * if possible.
+     *
+     * @param string $name The function name to compile
+     *
+     * @return callable The original function, or a compiled version if possible
+     */
+    public function compileFunctionJavaScript($name)
+    {
+        if ($this->jitfucompiler) {
+            $ir = $this->getFunctionIR($name);
+            if ($ir) {
+                return $this->jscompiler->compile($ir);
+            }
+        }
+
+        return $name;
+    }
+
+
 
     /**
      * Get a callable for a given function ir. This will compile the function
