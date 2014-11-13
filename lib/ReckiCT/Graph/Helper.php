@@ -42,6 +42,19 @@ class Helper
         }
     }
 
+    public static function insertBefore(Vertex $old, Vertex $new, Digraph $graph)
+    {
+        $toRemove = array();
+        foreach ($graph->predecessorsOf($old) as $node) {
+            $graph->ensureArc($node, $new);
+            $toRemove[] = $node;
+        }
+        $graph->ensureArc($new, $old);
+        foreach ($toRemove as $node) {
+            $graph->removeArc($node, $old);
+        }
+    }
+
     public static function replace(Vertex $old, Vertex $new, Digraph $graph)
     {
         foreach (self::getInboundNodes($old, $graph) as $n1) {
@@ -129,12 +142,12 @@ class Helper
         return $result;
     }
 
-    public static function findVariables(Digraph $graph)
+    public static function findVariables(Digraph $graph, $includeConstants = false)
     {
         $vars = new \SplObjectStorage();
         foreach ($graph->vertices() as $vertex) {
             foreach ($vertex->getVariables() as $var) {
-                if (!$var instanceof Constant) {
+                if ($includeConstants || !$var instanceof Constant) {
                     $vars->attach($var);
                 }
             }
